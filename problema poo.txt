@@ -1,0 +1,257 @@
+#include <iostream>
+#include <cstring>
+
+using namespace std;
+
+class Angajat {
+    private:
+        char nume[50];
+        int vechime;
+        char functie[50];
+        double salariu;
+    public:
+        Angajat(const char* nume, int vechime, const char* functie, double salariu) {
+            strcpy(this->nume, nume);
+            this->vechime = vechime;
+            strcpy(this->functie, functie);
+            this->salariu = salariu;
+        }
+        Angajat(){}
+        
+        const char* get_nume() { return nume; }
+        int get_vechime(){ return vechime;}
+        const char* get_functie() { return functie; }
+        double get_salariu(){ return salariu;}
+        
+        void marire(Angajat x);
+        
+        friend istream& operator>>(istream& in, Angajat& angajat) {
+            cout << "Introduceti numele angajatului: ";
+            in >> angajat.nume;
+            cout << "Introduceti vechimea angajatului: ";
+            in >> angajat.vechime;
+            cout << "Introduceti functia angajatului: ";
+            in >> angajat.functie;
+            cout << "Introduceti salariul angajatului: ";
+            in >> angajat.salariu;
+
+            return in;
+        }
+        friend ostream& operator<<(ostream& out, const Angajat& angajat) {
+            out << "Nume angajat: " << angajat.nume << "\n"
+                << "Vechime: " << angajat.vechime << " ani\n"
+                << "Functie: " << angajat.functie << "\n"
+                << "Salariu: " << angajat.salariu << " RON"<<"\n";
+            return out;
+        }
+        void afiseaza();
+        void afiseaza(int tipAfișare);
+};
+
+void Angajat::afiseaza() {
+    cout << "Nume: " << nume << ", Vechime: " << vechime << ", Functie: " << functie << ", Salariu: " << salariu << endl;
+}
+
+void Angajat::afiseaza(int tipAfișare) {
+    if (tipAfișare == 1) {
+        cout << "Nume: " << nume << ", Functie: " << functie << ", Salariu: " << salariu << endl;
+    } else 
+        if (tipAfișare == 2)
+            cout << "Nume: " << nume << ", Vechime: " << vechime << ", Salariu: " << salariu << endl;
+}
+
+class Client {
+    private:
+        char nume[50];
+        char adresa[100];
+        int codPostal;
+    public:
+        Client(const char* nume, const char* adresa, int codPostal) {
+            strcpy(this->nume, nume);
+            strcpy(this->adresa, adresa);
+            this->codPostal = codPostal;
+        }
+        Client(){}
+
+        const char* get_nume() { return nume; }
+        const char* get_adresa() { return adresa; }
+        int get_codPostal(){ return codPostal;}
+};
+
+class Colet {
+    private:
+        int id;
+        Client client;
+        double greutate;
+        double dimensiuni[3];
+        char adresaDestinatie[100];
+    public:
+        Colet(int id, Client client, double greutate, double dimensiuni[3], const char* adresaDestinatie) {
+            this->id = id;
+            this->client = client;
+            this->greutate = greutate;
+            for(int i = 0; i < 3; i++) {
+                this->dimensiuni[i] = dimensiuni[i];
+            }
+            strcpy(this->adresaDestinatie, adresaDestinatie);
+        }
+        Colet(){}
+        double get_dimensiune(){ return dimensiuni[0]*dimensiuni[1]*dimensiuni[2];}
+};
+
+class Masina {
+    private:
+        Angajat angajat;
+        char numarInmatriculare[10];
+        char marca[50];
+        char model[50];
+    public:
+        Masina(Angajat angajat, const char* numarInmatriculare, const char* marca, const char* model) {
+            this->angajat = angajat;
+            strcpy(this->numarInmatriculare, numarInmatriculare);
+            strcpy(this->marca, marca);
+            strcpy(this->model, model);
+        }
+        Masina(){}
+
+};
+
+class Livrare {
+    private:
+        Colet colet;
+        Masina masina;
+        Angajat angajat;
+        char dataLivrare[20];
+        float pret;
+    public:
+        Livrare(Colet colet, Masina masina, Angajat angajat, const char* dataLivrare, float pret) {
+            this->colet = colet;
+            this->masina = masina;
+            this->angajat = angajat;
+            strcpy(this->dataLivrare, dataLivrare);
+            this->pret = pret;
+        }
+        Livrare(){}
+        
+        void verificare_dimensiune(Colet x);
+
+};
+
+class TabelAngajati {
+    private:
+        Angajat* angajati;
+        int nrAngajati;
+    public:
+        TabelAngajati() {
+            nrAngajati = 0;
+            angajati = nullptr;
+        }
+
+        ~TabelAngajati() {
+            delete[] angajati;
+        }
+
+        void adaugaAngajat(const Angajat& angajat) {
+            Angajat* temp = new Angajat[nrAngajati + 1];
+            for (int i = 0; i < nrAngajati; ++i) {
+                temp[i] = angajati[i];
+            }
+            temp[nrAngajati] = angajat;
+            ++nrAngajati;
+
+            delete[] angajati;
+            angajati = temp;
+        }
+
+        double calculeazaSalariuMediu() {
+            if (nrAngajati == 0) {
+                return 0;
+            }
+
+            double sumaSalarii = 0;
+            for (int i = 0; i < nrAngajati; ++i) {
+                sumaSalarii += angajati[i].get_salariu();
+            }
+
+            return sumaSalarii / nrAngajati;
+        }
+};
+
+void Livrare::verificare_dimensiune(Colet colet)
+{
+    if(colet.get_dimensiune()>1000000)
+        cout<<"NU INCAPE"<<endl;
+    else
+        cout<<"INCAPE"<<endl;
+}
+    
+void Angajat::marire(Angajat angajat)
+{
+    if(strcmp(angajat.get_functie(), "Director") == 0 && angajat.get_vechime()>=3 && angajat.get_salariu()<5000)
+        {
+            cout<<"Salariul lui "<<angajat.get_nume()<<" trebuie marit cu "<<angajat.get_salariu()/10<<" RON"<<endl;
+        }
+    else
+        cout<<"Salariul nu trebuie marit"<<endl;
+}
+
+
+int main()
+{
+    Angajat angajat1("Ion Popescu", 5, "Sofer", 2500);
+    Angajat angajat2("Maria Ionescu", 3, "Director", 3000);
+
+    
+    Client client1("Dan Mihai", "Str. Florilor, Nr. 10", 500012);
+    Client client2("Ana Popa", "Bd. Stefan cel Mare, Nr. 50", 700065);
+
+    
+
+    double dimensiuniColet1[3] = {30, 200, 400};
+    Colet colet1(1, client1, 2.5, dimensiuniColet1, "Bucuresti, Str. Ion Mihalache, Nr. 20");
+    double dimensiuniColet2[3] = {40, 30, 50};
+    Colet colet2(2, client2, 3.2, dimensiuniColet2, "Cluj-Napoca, Str. Avram Iancu, Nr. 50");
+
+    
+
+    Masina masina1(angajat1, "B 123 ABC", "Ford", "Transit");
+    Masina masina2(angajat2, "CJ 02 XYZ", "Renault", "Kangoo");
+
+   
+
+    Livrare livrare1(colet1, masina1, angajat1, "2023-03-28", 15.00);
+    Livrare livrare2(colet2, masina2, angajat2, "2023-03-29", 20.00);
+
+    cout << "Colet 1: ";
+    livrare1.verificare_dimensiune(colet1);
+    cout << "Colet 2: ";
+    livrare2.verificare_dimensiune(colet2);
+
+    cout << "Angajat 1: ";
+    angajat1.marire(angajat1);
+    cout << "Angajat 2: ";
+    angajat2.marire(angajat2);
+    
+    TabelAngajati tabel;
+    tabel.adaugaAngajat(angajat1);
+    tabel.adaugaAngajat(angajat2);
+
+    cout << "Salariul mediu al angajatilor: " << tabel.calculeazaSalariuMediu() << " RON" <<endl;
+    
+    Angajat angajat3;
+    cin >> angajat3;
+    cout << angajat3;
+    
+    cout << "Afișare angajat1 (tip 1):" << endl;
+    angajat1.afiseaza(1);
+
+    cout << "Afișare angajat1 (tip 2):" << endl;
+    angajat1.afiseaza(2);
+
+    cout << "Afișare angajat1 ():" << endl;
+    angajat1.afiseaza();
+    
+    return 0;
+}
+
+   
