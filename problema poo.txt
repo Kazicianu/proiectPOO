@@ -1,23 +1,73 @@
 #include <iostream>
 #include <cstring>
+#include <exception>
+
 
 using namespace std;
 
-class Angajat {
+class DimensiuneColetZero : public std::exception {
+public:
+    const char* what() const noexcept override {
+        return "Eroare: Dimensiunea coletului este zero.";
+    }
+};
+
+class InterfataAngajat{
+  public:
+  
+    virtual void afiseaza()=0;
+    virtual void afiseaza(int tipAfișare)=0;
+    virtual void calculeazaSalariu()=0;
+    virtual bool estePromovat()=0;
+    virtual ~InterfataAngajat(){
+        
+    }
+
+};
+
+class Angajat: public InterfataAngajat {
     private:
         char nume[50];
         int vechime;
         char functie[50];
         double salariu;
+        static int numarAngajati;
+        
+    protected:
+        int oreSuplimentare;
+        double bonusOreSuplimentare;
+        void calculeazaBonus() {
+            bonusOreSuplimentare = oreSuplimentare * 10;
+        }
+        void set_salariu(double salariu) { this->salariu = salariu; }
+
     public:
         Angajat(const char* nume, int vechime, const char* functie, double salariu) {
             strcpy(this->nume, nume);
             this->vechime = vechime;
             strcpy(this->functie, functie);
             this->salariu = salariu;
+            this->oreSuplimentare = 0;
+            this->bonusOreSuplimentare = 0;
+            numarAngajati++;
         }
         Angajat(){}
         
+        static int get_numarAngajati() {
+            return numarAngajati;
+        }
+        
+        void calculeazaSalariu() override {
+            calculeazaBonus();
+            set_salariu(get_salariu() + bonusOreSuplimentare);
+        }
+
+        bool estePromovat() override {
+            if (vechime >= 5 && strcmp(functie, "Programator") == 0) {
+                return true;
+            }
+            return false;
+        }
         const char* get_nume() { return nume; }
         int get_vechime(){ return vechime;}
         const char* get_functie() { return functie; }
@@ -44,21 +94,21 @@ class Angajat {
                 << "Salariu: " << angajat.salariu << " RON"<<"\n";
             return out;
         }
-        void afiseaza();
-        void afiseaza(int tipAfișare);
+        void afiseaza() override {
+            cout << "Nume: " << nume << ", Vechime: " << vechime << ", Functie: " << functie << ", Salariu: " << salariu << endl;
+        }
+        
+        void afiseaza(int tipAfișare) override {
+            if (tipAfișare == 1) {
+                cout << "Nume: " << nume << ", Functie: " << functie << ", Salariu: " << salariu << endl;
+            } else 
+                if (tipAfișare == 2)
+                    cout << "Nume: " << nume << ", Vechime: " << vechime << ", Salariu: " << salariu << endl;
+        }
 };
 
-void Angajat::afiseaza() {
-    cout << "Nume: " << nume << ", Vechime: " << vechime << ", Functie: " << functie << ", Salariu: " << salariu << endl;
-}
+int Angajat::numarAngajati = 0;
 
-void Angajat::afiseaza(int tipAfișare) {
-    if (tipAfișare == 1) {
-        cout << "Nume: " << nume << ", Functie: " << functie << ", Salariu: " << salariu << endl;
-    } else 
-        if (tipAfișare == 2)
-            cout << "Nume: " << nume << ", Vechime: " << vechime << ", Salariu: " << salariu << endl;
-}
 
 class Client {
     private:
@@ -87,6 +137,9 @@ class Colet {
         char adresaDestinatie[100];
     public:
         Colet(int id, Client client, double greutate, double dimensiuni[3], const char* adresaDestinatie) {
+            if (dimensiuni[0] * dimensiuni[1] * dimensiuni[2] == 0) {
+                throw DimensiuneColetZero();
+            }
             this->id = id;
             this->client = client;
             this->greutate = greutate;
@@ -97,6 +150,7 @@ class Colet {
         }
         Colet(){}
         double get_dimensiune(){ return dimensiuni[0]*dimensiuni[1]*dimensiuni[2];}
+        double get_greutate(){return greutate;}
 };
 
 class Masina {
@@ -196,10 +250,77 @@ void Angajat::marire(Angajat angajat)
 }
 
 
+class AngajatCuConcediu : public Angajat {
+    private:
+        int zileConcediu;
+    public:
+        AngajatCuConcediu(const char* nume, int vechime, const char* functie, double salariu, int zileConcediu)
+            : Angajat(nume, vechime, functie, salariu) {
+            this->zileConcediu = zileConcediu;
+        }
+
+        int get_zileConcediu() { return zileConcediu; }
+
+        void iaConcediu(int zile) {
+            if (zile > zileConcediu) {
+                cout << "Nu sunt suficiente zile de concediu disponibile." << endl;
+            } else {
+                zileConcediu -= zile;
+                cout << "Angajatul " << get_nume() << " și-a luat " << zile << " zile de concediu. Mai are " << zileConcediu << " zile de concediu disponibile." << endl;
+            }
+        }
+};
+
+class ComandaPrioritara : public Colet, public Client {
+    private:
+        bool livrareUrgenta;
+    public:
+        ComandaPrioritara(int id, Client client, double greutate, double dimensiuni[3], const char* adresaDestinatie, const char* nume, const char* adresa, int codPostal, bool livrareUrgenta)
+            : Colet(id, client, greutate, dimensiuni, adresaDestinatie), Client(nume, adresa, codPostal), livrareUrgenta(livrareUrgenta) {
+        }
+        void verificare_prioritate()
+        {
+            if(get_greutate()<10 && get_codPostal() == 700065 && livrareUrgenta==true)
+                cout<<"Aceasta comanda este prioritara"<<endl;
+            else
+                cout<<"Aceasta comanda NU este prioritara"<<endl;
+        }
+};
+
 int main()
 {
-    Angajat angajat1("Ion Popescu", 5, "Sofer", 2500);
-    Angajat angajat2("Maria Ionescu", 3, "Director", 3000);
+    InterfataAngajat* angajati[2];
+    
+    angajati[0] = new Angajat("Ion Popescu", 6, "Programator", 4000);
+    angajati[1] = new AngajatCuConcediu("Ana Ionescu", 3, "Manager", 4500, 20);
+
+    for (int i = 0; i < 2; i++) {
+        angajati[i]->afiseaza();
+        angajati[i]->calculeazaSalariu();
+        cout << "Salariul dupa calcul: " << dynamic_cast<Angajat*>(angajati[i])->get_salariu() << endl;
+        cout << "Promovat: " << (angajati[i]->estePromovat() ? "Da" : "Nu") << endl;
+    }
+
+    for (int i = 0; i < 2; i++) {
+        delete angajati[i];
+    }
+    
+    Angajat angajat1("Ion Popescu", 6, "Programator", 4500);
+    Angajat angajat2("Maria Ionescu", 3, "Manager", 6000);
+
+    cout << "Inainte de calculul salariului:\n";
+    angajat1.afiseaza();
+    angajat2.afiseaza();
+
+    angajat1.calculeazaSalariu();
+    angajat2.calculeazaSalariu();
+
+    cout << "Dupa calculul salariului:\n";
+    angajat1.afiseaza();
+    angajat2.afiseaza();
+
+    cout << "Angajatul 1 " << (angajat1.estePromovat() ? "este" : "nu este") << " promovat.\n";
+    cout << "Angajatul 2 " << (angajat2.estePromovat() ? "este" : "nu este") << " promovat.\n";
 
     
     Client client1("Dan Mihai", "Str. Florilor, Nr. 10", 500012);
@@ -251,6 +372,28 @@ int main()
     cout << "Afișare angajat1 ():" << endl;
     angajat1.afiseaza();
     
+    
+    
+    AngajatCuConcediu angajatCuConcediu("Elena Popescu", 7, "Manager", 4000, 10);
+    cout << "Angajat cu concediu: " << angajatCuConcediu.get_nume() << ", zile concediu: " << angajatCuConcediu.get_zileConcediu() << endl;
+
+    angajatCuConcediu.iaConcediu(4); // angajatul își ia 4 zile de concediu
+    angajatCuConcediu.iaConcediu(8); // încearcă să ia 8 zile de concediu, dar nu are suficiente zile disponibile
+    double dimensiuniColet3[3] = {20, 40, 60};
+    ComandaPrioritara comandaPrioritara(3, client1, 3.5, dimensiuniColet3, "Bucuresti, Str. Victoriei, Nr. 15", "Andrei Popescu", "Str. Lalelelor, Nr. 20", 600011, true);
+    comandaPrioritara.verificare_prioritate();
+    
+    try {
+        double dimensiuni[3] = {0, 0, 0};
+        Client client("Ion Popescu", "Strada Lalelelor, nr. 5", 700065);
+        Colet colet(1, client, 5, dimensiuni, "Strada Trandafirilor, nr. 8");
+    } catch (const DimensiuneColetZero& e) {
+        cerr << e.what() << endl;
+    }
+    
+    cout << "Numarul total de angajati: " << Angajat::get_numarAngajati() << endl;
+
+
     return 0;
 }
 
