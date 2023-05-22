@@ -1,9 +1,28 @@
 #include <iostream>
 #include <cstring>
 #include <exception>
-
+#include <vector>
 
 using namespace std;
+
+
+
+template <typename T>
+class Depozit {
+    private:
+        vector<T> obiecte;
+    public:
+        void adaugaObiect(const T& obiect) {
+            obiecte.push_back(obiect);
+        }
+
+        void afiseazaObiecte() {
+            for (const auto& obiect : obiecte) {
+                cout << obiect << endl;
+            }
+        }
+};
+
 
 class DimensiuneColetZero : public std::exception {
 public:
@@ -149,8 +168,16 @@ class Colet {
             strcpy(this->adresaDestinatie, adresaDestinatie);
         }
         Colet(){}
+        friend ostream& operator<<(ostream& out, const Colet& colet) {
+    out << "ID Colet: " << colet.id << "\n"
+        << "Greutate: " << colet.greutate << " kg\n"
+        << "Dimensiuni: " << colet.dimensiuni[0] << " x " << colet.dimensiuni[1] << " x " << colet.dimensiuni[2] << "\n"
+        << "Adresa Destinatie: " << colet.adresaDestinatie << "\n";
+    return out;
+}
+
         double get_dimensiune(){ return dimensiuni[0]*dimensiuni[1]*dimensiuni[2];}
-        double get_greutate(){return greutate;}
+        double get_greutate() const {return greutate;}
 };
 
 class Masina {
@@ -287,6 +314,12 @@ class ComandaPrioritara : public Colet, public Client {
         }
 };
 
+    template <typename T>
+    double calculeazaCostLivrare(const T& colet, double costPerKg) {
+        return colet.get_greutate() * costPerKg;
+}
+
+
 int main()
 {
     InterfataAngajat* angajati[2];
@@ -392,6 +425,22 @@ int main()
     }
     
     cout << "Numarul total de angajati: " << Angajat::get_numarAngajati() << endl;
+
+    Depozit<Colet> depozit;
+
+    depozit.adaugaObiect(colet1);
+    depozit.adaugaObiect(colet2);
+
+    depozit.afiseazaObiecte();
+    
+    
+    double costPerKg = 5.0;
+    double costLivrareColet1 = calculeazaCostLivrare(colet1, costPerKg);
+    double costLivrareColet2 = calculeazaCostLivrare(colet2, costPerKg);
+
+    cout << "Costul livrarii coletului 1 este: " << costLivrareColet1 << " RON" << endl;
+    cout << "Costul livrarii coletului 2 este: " << costLivrareColet2 << " RON" << endl;
+
 
 
     return 0;
