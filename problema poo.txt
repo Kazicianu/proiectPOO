@@ -2,6 +2,7 @@
 #include <cstring>
 #include <exception>
 #include <vector>
+#include <memory>
 
 using namespace std;
 
@@ -180,22 +181,26 @@ class Colet {
         double get_greutate() const {return greutate;}
 };
 
+
 class Masina {
-    private:
-        Angajat angajat;
-        char numarInmatriculare[10];
-        char marca[50];
-        char model[50];
-    public:
-        Masina(Angajat angajat, const char* numarInmatriculare, const char* marca, const char* model) {
-            this->angajat = angajat;
-            strcpy(this->numarInmatriculare, numarInmatriculare);
-            strcpy(this->marca, marca);
-            strcpy(this->model, model);
-        }
-        Masina(){}
+private:
+    Angajat angajat;
+    string numarInmatriculare;
+    string marca;
+    string model;
+
+public:
+    Masina(Angajat angajat, const string& numarInmatriculare, const string& marca, const string& model) {
+        this->angajat = angajat;
+        this->numarInmatriculare = numarInmatriculare;
+        this->marca = marca;
+        this->model = model;
+    }
+
+    Masina() {}
 
 };
+
 
 class Livrare {
     private:
@@ -322,21 +327,19 @@ class ComandaPrioritara : public Colet, public Client {
 
 int main()
 {
-    InterfataAngajat* angajati[2];
-    
-    angajati[0] = new Angajat("Ion Popescu", 6, "Programator", 4000);
-    angajati[1] = new AngajatCuConcediu("Ana Ionescu", 3, "Manager", 4500, 20);
+    unique_ptr<InterfataAngajat> angajati[2];
+
+    angajati[0] = make_unique<Angajat>("Ion Popescu", 6, "Programator", 4000);
+    angajati[1] = make_unique<AngajatCuConcediu>("Ana Ionescu", 3, "Manager", 4500, 20);
 
     for (int i = 0; i < 2; i++) {
         angajati[i]->afiseaza();
         angajati[i]->calculeazaSalariu();
-        cout << "Salariul dupa calcul: " << dynamic_cast<Angajat*>(angajati[i])->get_salariu() << endl;
+        cout << "Salariul dupa calcul: " << dynamic_cast<Angajat*>(angajati[i].get())->get_salariu() << endl;
         cout << "Promovat: " << (angajati[i]->estePromovat() ? "Da" : "Nu") << endl;
     }
 
-    for (int i = 0; i < 2; i++) {
-        delete angajati[i];
-    }
+
     
     Angajat angajat1("Ion Popescu", 6, "Programator", 4500);
     Angajat angajat2("Maria Ionescu", 3, "Manager", 6000);
